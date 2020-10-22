@@ -51,9 +51,33 @@ namespace l11_wpf_mp_snake
 
         private void UpdateGame(object sender, EventArgs e)
         {
-            pos_row -= 1; //up
+            switch(snakeDir)
+            {
+                case Direction.Down:
+                    {
+                        pos_row += 1;
+                        break;
+                    }
+                case Direction.Up:
+                    {
+                        pos_row -= 1;
+                        break;
+                    }
+                case Direction.Left:
+                    {
+                        pos_col -= 1;
+                        break;
+                    }
+                case Direction.Right:
+                    {
+                        pos_col += 1;
+                        break;
+                    }
+            }
+            
 
             Grid.SetRow(snakeHead, pos_row);
+            Grid.SetColumn(snakeHead, pos_col);
         }
     }
 }
