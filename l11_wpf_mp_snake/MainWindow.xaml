@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:l11_wpf_mp_snake"
         mc:Ignorable="d"
-        Title="MainWindow" Height="512" Width="512">
-    <Grid x:Name="grdBackground" Background="#FF2EAAB0">
+        Title="MainWindow" Height="512" Width="512" PreviewKeyUp="grdBackground_KeyUp">
+    <Grid x:Name="grdBackground" Background="#FF2EAAB0" >
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="16"/>
             <ColumnDefinition Width="16"/>
@@ -76,5 +76,6 @@
             <RowDefinition Height="16"/>
         </Grid.RowDefinitions>
         <Border Name="snakeHead" Background="Black" Grid.Column="8" Grid.Row="8"/>
+        <Label x:Name="labelGameOver" Grid.ColumnSpan="18" Content="Game over" Grid.Column="5" Height="64" Margin="6,10,10,0" Grid.Row="12" Grid.RowSpan="5" VerticalAlignment="Top" Background="{x:Null}" Foreground="Red" FontSize="48" Visibility="Collapsed"/>
     </Grid>
 </Window>

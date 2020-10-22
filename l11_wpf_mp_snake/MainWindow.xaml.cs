@@ -24,6 +24,10 @@ namespace l11_wpf_mp_snake
         const int GRID_WIDTH = 32;
         const int GRID_HEIGHT = 32;
 
+        const int EMPTY_CELL = 0;
+        const int SNAKE_HEAD = 1;
+        const int SNAKE_BODY = 2;
+
         int[,] gameField = new int[GRID_WIDTH,GRID_HEIGHT];
         int pos_row = 8;
         int pos_col = 8;
@@ -38,12 +42,13 @@ namespace l11_wpf_mp_snake
         }
 
         Direction snakeDir = Direction.Left;
+        private DispatcherTimer ticker;
 
         public MainWindow()
         {
             InitializeComponent();
             
-            var ticker = new DispatcherTimer();
+            ticker = new DispatcherTimer();
             ticker.Interval = new TimeSpan( 33300*30 ); //30fps
             ticker.Tick += UpdateGame;
             ticker.Start();
@@ -51,7 +56,9 @@ namespace l11_wpf_mp_snake
 
         private void UpdateGame(object sender, EventArgs e)
         {
-            switch(snakeDir)
+            gameField[pos_row, pos_col] = EMPTY_CELL;
+
+            switch (snakeDir)
             {
                 case Direction.Down:
                     {
@@ -74,10 +81,75 @@ namespace l11_wpf_mp_snake
                         break;
                     }
             }
-            
 
+            if((pos_col < 0) || (pos_col >= GRID_WIDTH) ||
+                (pos_row < 0) || (pos_row >= GRID_HEIGHT))
+            {
+                GameOver();
+                return;
+            }
+
+            if(gameField[pos_row, pos_col] != EMPTY_CELL)
+            {
+                GameOver();
+                return;
+            }
+
+            gameField[pos_row, pos_col] = SNAKE_HEAD;            
+            
             Grid.SetRow(snakeHead, pos_row);
             Grid.SetColumn(snakeHead, pos_col);
+        }
+
+        private void GameOver()
+        {
+            ticker.Stop();
+            snakeHead.Visibility = Visibility.Hidden;
+            labelGameOver.Visibility = Visibility.Visible;
+        }
+
+        private void grdBackground_KeyUp(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Up:
+                    {
+                        snakeDir = Direction.Up;
+                        break;
+                    }
+                case Key.Down:
+                    {
+                        snakeDir = Direction.Down;
+                        break;
+                    }
+                case Key.Left:
+                    {
+                        snakeDir = Direction.Left;
+                        break;
+                    }
+                case Key.Right:
+                    {
+                        snakeDir = Direction.Right;
+                        break;
+                    }
+                case Key.R:
+                    {
+                        Restart();
+                        break;
+                    }
+            }
+        }
+
+        private void Restart()
+        {
+            pos_col = 8; //DEFAULT_POS
+            pos_row = 8;
+            snakeDir = Direction.Left;
+            Grid.SetRow(snakeHead, pos_row);
+            Grid.SetColumn(snakeHead, pos_col);
+            snakeHead.Visibility = Visibility.Visible;
+            labelGameOver.Visibility = Visibility.Collapsed;
+            ticker.Start();
         }
     }
 }
