@@ -76,6 +76,7 @@
             <RowDefinition Height="16"/>
         </Grid.RowDefinitions>
         <Border Name="snakeHead" Background="Black" Grid.Column="8" Grid.Row="8"/>
+        <Border Name="egg" Background="Red" Grid.Column="13" Grid.Row="18" Visibility="Collapsed"/>
         <Label x:Name="labelGameOver" Grid.ColumnSpan="18" Content="Game over" Grid.Column="5" Height="64" Margin="6,10,10,0" Grid.Row="12" Grid.RowSpan="5" VerticalAlignment="Top" Background="{x:Null}" Foreground="Red" FontSize="48" Visibility="Collapsed"/>
     </Grid>
 </Window>

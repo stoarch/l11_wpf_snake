@@ -27,10 +27,21 @@ namespace l11_wpf_mp_snake
         const int EMPTY_CELL = 0;
         const int SNAKE_HEAD = 1;
         const int SNAKE_BODY = 2;
+        const int WALL = 3;
+        const int EGG = 4;
+
 
         int[,] gameField = new int[GRID_WIDTH,GRID_HEIGHT];
-        int pos_row = 8;
-        int pos_col = 8;
+        int posRow = 8;
+        int posCol = 8;
+
+        int eggRow;
+        int eggCol;
+        bool eggExists = false;
+        private int eggSpawnTimer;
+
+        HashSet<int> blockers;
+        List<>
 
         enum Direction
         {
@@ -43,62 +54,118 @@ namespace l11_wpf_mp_snake
 
         Direction snakeDir = Direction.Left;
         private DispatcherTimer ticker;
+        private Random rnd;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            rnd = new Random();
+
+            blockers = new HashSet<int>();
+            blockers.Add(SNAKE_BODY);
+            blockers.Add(WALL);
             
             ticker = new DispatcherTimer();
             ticker.Interval = new TimeSpan( 33300*30 ); //30fps
             ticker.Tick += UpdateGame;
             ticker.Start();
+
         }
 
         private void UpdateGame(object sender, EventArgs e)
         {
-            gameField[pos_row, pos_col] = EMPTY_CELL;
+            gameField[posRow, posCol] = EMPTY_CELL;
 
             switch (snakeDir)
             {
                 case Direction.Down:
                     {
-                        pos_row += 1;
+                        posRow += 1;
                         break;
                     }
                 case Direction.Up:
                     {
-                        pos_row -= 1;
+                        posRow -= 1;
                         break;
                     }
                 case Direction.Left:
                     {
-                        pos_col -= 1;
+                        posCol -= 1;
                         break;
                     }
                 case Direction.Right:
                     {
-                        pos_col += 1;
+                        posCol += 1;
                         break;
                     }
             }
 
-            if((pos_col < 0) || (pos_col >= GRID_WIDTH) ||
-                (pos_row < 0) || (pos_row >= GRID_HEIGHT))
+            if((posCol < 0) || (posCol >= GRID_WIDTH) ||
+                (posRow < 0) || (posRow >= GRID_HEIGHT))
             {
                 GameOver();
                 return;
             }
 
-            if(gameField[pos_row, pos_col] != EMPTY_CELL)
+            //Spawn egg if not found
+            if (!eggExists)
+            {
+                if(eggSpawnTimer > 0)
+                {
+                    eggSpawnTimer -= 1;
+                }
+
+                if (eggSpawnTimer == 0)
+                {
+                    int repCount = 0;
+                    bool freeFound = true;
+
+                    do
+                    {
+                        eggRow = rnd.Next(0, GRID_WIDTH);
+                        eggCol = rnd.Next(0, GRID_HEIGHT);
+
+                        if (gameField[eggRow, eggCol] == EMPTY_CELL)
+                        {
+                            freeFound = true;
+                            break;
+                        }
+
+                        repCount += 1;
+                    } while (repCount < 3);
+
+                    if (freeFound)
+                    {
+                        gameField[eggRow, eggCol] = EGG;
+                        Grid.SetRow(egg, eggRow);
+                        Grid.SetColumn(egg, eggCol);
+                        egg.Visibility = Visibility.Visible;
+                        eggExists = true;
+                    }
+                }
+            }
+
+            //Check collision with egg (to grow snake)
+            if((posRow == eggRow)&&(posCol == eggCol))//eat egg and make thyself bigger
+            {
+                eggExists = false;
+                eggSpawnTimer = 10;//ticks
+                //TODO: Grow snake
+                egg.Visibility = Visibility.Collapsed;
+            }
+
+            //Check collision with self or walls
+            if (blockers.Contains(gameField[posRow, posCol]))
             {
                 GameOver();
                 return;
             }
 
-            gameField[pos_row, pos_col] = SNAKE_HEAD;            
+            gameField[posRow, posCol] = SNAKE_HEAD;            
             
-            Grid.SetRow(snakeHead, pos_row);
-            Grid.SetColumn(snakeHead, pos_col);
+            Grid.SetRow(snakeHead, posRow);
+            Grid.SetColumn(snakeHead, posCol);
         }
 
         private void GameOver()
@@ -142,13 +209,18 @@ namespace l11_wpf_mp_snake
 
         private void Restart()
         {
-            pos_col = 8; //DEFAULT_POS
-            pos_row = 8;
+            posCol = 8; //DEFAULT_POS
+            posRow = 8;
             snakeDir = Direction.Left;
-            Grid.SetRow(snakeHead, pos_row);
-            Grid.SetColumn(snakeHead, pos_col);
+            Grid.SetRow(snakeHead, posRow);
+            Grid.SetColumn(snakeHead, posCol);
             snakeHead.Visibility = Visibility.Visible;
             labelGameOver.Visibility = Visibility.Collapsed;
+
+            egg.Visibility = Visibility.Collapsed;
+            eggExists = false;
+            eggSpawnTimer = 0;
+
             ticker.Start();
         }
     }
