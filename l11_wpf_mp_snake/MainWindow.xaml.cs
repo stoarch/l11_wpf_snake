@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -82,6 +83,9 @@ namespace l11_wpf_mp_snake
 
         private void UpdateGame(object sender, EventArgs e)
         {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+
             PointInt prevPos = pos;
 
             gameField[pos.row, pos.col] = EMPTY_CELL;
@@ -180,29 +184,38 @@ namespace l11_wpf_mp_snake
                 return;
             }
 
-            gameField[pos.row, pos.col] = SNAKE_HEAD;            
-            
-            Grid.SetRow(snakeHead, pos.row);
-            Grid.SetColumn(snakeHead, pos.col);
+            gameField[pos.row, pos.col] = SNAKE_HEAD;
 
-            if (snakeBodyPos.Count != 0)//we have body to move
+            //Update snake
+
+            using (Dispatcher.DisableProcessing())
             {
-                //Move positions one step further towards head
-                for (int i = 0; i < snakeBodyPos.Count - 1; i++)
-                {
-                    snakeBodyPos[i] = snakeBodyPos[i + 1];
-                }
-                snakeBodyPos[snakeBodyPos.Count - 1] = prevPos;
+                Grid.SetRow(snakeHead, pos.row);
+                Grid.SetColumn(snakeHead, pos.col);
 
-                //Show new segment pos
-                for (int i = 0; i < snakeBodyPos.Count; i++)
+                if (snakeBodyPos.Count != 0)//we have body to move
                 {
-                    var curSegmentPos = snakeBodyPos[i];
-                    var curSegmentView = snakeBodyView[i];
-                    Grid.SetRow(curSegmentView, curSegmentPos.row);
-                    Grid.SetColumn(curSegmentView, curSegmentPos.col);
+                    //Move positions one step further towards head
+                    for (int i = 0; i < snakeBodyPos.Count - 1; i++)
+                    {
+                        snakeBodyPos[i] = snakeBodyPos[i + 1];
+                    }
+                    snakeBodyPos[snakeBodyPos.Count - 1] = prevPos;
+
+                    //Show new segment pos
+                    for (int i = 0; i < snakeBodyPos.Count; i++)
+                    {
+                        var curSegmentPos = snakeBodyPos[i];
+                        var curSegmentView = snakeBodyView[i];
+                        Grid.SetRow(curSegmentView, curSegmentPos.row);
+                        Grid.SetColumn(curSegmentView, curSegmentPos.col);
+                    }
                 }
             }
+
+            stopWatch.Stop();
+            textMsUpdate.Text = stopWatch.Elapsed.TotalMilliseconds.ToString("0.00 ms");
+            textFPS.Text = Math.Min(100.0, (1000 / stopWatch.Elapsed.TotalMilliseconds)).ToString("00.0 FPS");
         }
 
         private void GameOver()
@@ -253,6 +266,13 @@ namespace l11_wpf_mp_snake
             Grid.SetColumn(snakeHead, pos.col);
             snakeHead.Visibility = Visibility.Visible;
             labelGameOver.Visibility = Visibility.Collapsed;
+
+            snakeBodyPos.Clear();
+            foreach (var snakeSegment in snakeBodyView)
+            {
+                grdBackground.Children.Remove(snakeSegment);
+            }
+            snakeBodyPos.Clear();
 
             egg.Visibility = Visibility.Collapsed;
             eggExists = false;
