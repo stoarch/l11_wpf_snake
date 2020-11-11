@@ -44,6 +44,8 @@ namespace l11_wpf_mp_snake
         private int eggSpawnTimer;
 
         HashSet<int> blockers;
+        List<PointInt> snakeBodyPos = new List<PointInt>();
+        List<Border> snakeBodyView = new List<Border>();
 
         enum Direction
         {
@@ -80,6 +82,8 @@ namespace l11_wpf_mp_snake
 
         private void UpdateGame(object sender, EventArgs e)
         {
+            PointInt prevPos = pos;
+
             gameField[pos.row, pos.col] = EMPTY_CELL;
 
             switch (snakeDir)
@@ -156,8 +160,17 @@ namespace l11_wpf_mp_snake
             {
                 eggExists = false;
                 eggSpawnTimer = 10;//ticks
-                //TODO: Grow snake
                 egg.Visibility = Visibility.Collapsed;
+
+                var newSegment = new Border();
+                newSegment.Background = new SolidColorBrush(Color.FromRgb(0,0,0));//black
+                grdBackground.Children.Add(newSegment);
+
+                Grid.SetRow(newSegment, prevPos.row);
+                Grid.SetColumn(newSegment, prevPos.col);
+
+                snakeBodyView.Add(newSegment);
+                snakeBodyPos.Add(prevPos);
             }
 
             //Check collision with self or walls
@@ -171,6 +184,25 @@ namespace l11_wpf_mp_snake
             
             Grid.SetRow(snakeHead, pos.row);
             Grid.SetColumn(snakeHead, pos.col);
+
+            if (snakeBodyPos.Count != 0)//we have body to move
+            {
+                //Move positions one step further towards head
+                for (int i = 0; i < snakeBodyPos.Count - 1; i++)
+                {
+                    snakeBodyPos[i] = snakeBodyPos[i + 1];
+                }
+                snakeBodyPos[snakeBodyPos.Count - 1] = prevPos;
+
+                //Show new segment pos
+                for (int i = 0; i < snakeBodyPos.Count; i++)
+                {
+                    var curSegmentPos = snakeBodyPos[i];
+                    var curSegmentView = snakeBodyView[i];
+                    Grid.SetRow(curSegmentView, curSegmentPos.row);
+                    Grid.SetColumn(curSegmentView, curSegmentPos.col);
+                }
+            }
         }
 
         private void GameOver()
