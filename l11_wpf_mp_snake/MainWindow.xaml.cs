@@ -30,18 +30,20 @@ namespace l11_wpf_mp_snake
         const int WALL = 3;
         const int EGG = 4;
 
+        internal struct PointInt
+        {
+            internal int row;
+            internal int col;
+        }
 
         int[,] gameField = new int[GRID_WIDTH,GRID_HEIGHT];
-        int posRow = 8;
-        int posCol = 8;
+        PointInt pos;
+        PointInt eggPos;
 
-        int eggRow;
-        int eggCol;
         bool eggExists = false;
         private int eggSpawnTimer;
 
         HashSet<int> blockers;
-        List<>
 
         enum Direction
         {
@@ -62,6 +64,9 @@ namespace l11_wpf_mp_snake
 
             rnd = new Random();
 
+            pos.row = 8;
+            pos.col = 8;
+
             blockers = new HashSet<int>();
             blockers.Add(SNAKE_BODY);
             blockers.Add(WALL);
@@ -75,34 +80,34 @@ namespace l11_wpf_mp_snake
 
         private void UpdateGame(object sender, EventArgs e)
         {
-            gameField[posRow, posCol] = EMPTY_CELL;
+            gameField[pos.row, pos.col] = EMPTY_CELL;
 
             switch (snakeDir)
             {
                 case Direction.Down:
                     {
-                        posRow += 1;
+                        pos.row += 1;
                         break;
                     }
                 case Direction.Up:
                     {
-                        posRow -= 1;
+                        pos.row -= 1;
                         break;
                     }
                 case Direction.Left:
                     {
-                        posCol -= 1;
+                        pos.col -= 1;
                         break;
                     }
                 case Direction.Right:
                     {
-                        posCol += 1;
+                        pos.col += 1;
                         break;
                     }
             }
 
-            if((posCol < 0) || (posCol >= GRID_WIDTH) ||
-                (posRow < 0) || (posRow >= GRID_HEIGHT))
+            if((pos.col < 0) || (pos.col >= GRID_WIDTH) ||
+                (pos.row < 0) || (pos.row >= GRID_HEIGHT))
             {
                 GameOver();
                 return;
@@ -123,10 +128,10 @@ namespace l11_wpf_mp_snake
 
                     do
                     {
-                        eggRow = rnd.Next(0, GRID_WIDTH);
-                        eggCol = rnd.Next(0, GRID_HEIGHT);
+                        eggPos.row = rnd.Next(0, GRID_WIDTH);
+                        eggPos.col = rnd.Next(0, GRID_HEIGHT);
 
-                        if (gameField[eggRow, eggCol] == EMPTY_CELL)
+                        if (gameField[eggPos.row, eggPos.col] == EMPTY_CELL)
                         {
                             freeFound = true;
                             break;
@@ -137,9 +142,9 @@ namespace l11_wpf_mp_snake
 
                     if (freeFound)
                     {
-                        gameField[eggRow, eggCol] = EGG;
-                        Grid.SetRow(egg, eggRow);
-                        Grid.SetColumn(egg, eggCol);
+                        gameField[eggPos.row, eggPos.col] = EGG;
+                        Grid.SetRow(egg, eggPos.row);
+                        Grid.SetColumn(egg, eggPos.col);
                         egg.Visibility = Visibility.Visible;
                         eggExists = true;
                     }
@@ -147,7 +152,7 @@ namespace l11_wpf_mp_snake
             }
 
             //Check collision with egg (to grow snake)
-            if((posRow == eggRow)&&(posCol == eggCol))//eat egg and make thyself bigger
+            if((pos.row == eggPos.row)&&(pos.col == eggPos.col))//eat egg and make thyself bigger
             {
                 eggExists = false;
                 eggSpawnTimer = 10;//ticks
@@ -156,16 +161,16 @@ namespace l11_wpf_mp_snake
             }
 
             //Check collision with self or walls
-            if (blockers.Contains(gameField[posRow, posCol]))
+            if (blockers.Contains(gameField[pos.row, pos.col]))
             {
                 GameOver();
                 return;
             }
 
-            gameField[posRow, posCol] = SNAKE_HEAD;            
+            gameField[pos.row, pos.col] = SNAKE_HEAD;            
             
-            Grid.SetRow(snakeHead, posRow);
-            Grid.SetColumn(snakeHead, posCol);
+            Grid.SetRow(snakeHead, pos.row);
+            Grid.SetColumn(snakeHead, pos.col);
         }
 
         private void GameOver()
@@ -209,11 +214,11 @@ namespace l11_wpf_mp_snake
 
         private void Restart()
         {
-            posCol = 8; //DEFAULT_POS
-            posRow = 8;
+            pos.col = 8; //DEFAULT_POS
+            pos.row = 8;
             snakeDir = Direction.Left;
-            Grid.SetRow(snakeHead, posRow);
-            Grid.SetColumn(snakeHead, posCol);
+            Grid.SetRow(snakeHead, pos.row);
+            Grid.SetColumn(snakeHead, pos.col);
             snakeHead.Visibility = Visibility.Visible;
             labelGameOver.Visibility = Visibility.Collapsed;
 
